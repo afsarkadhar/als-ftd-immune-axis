@@ -63,3 +63,19 @@ leave-one-dataset-out on the node decision.
 If the immune axis shows no signal, this is reported as a null result and tested by
 published ALS subtype. Any deviation from this document is recorded as a dated amendment
 stating what changed and why. Anything not listed above is exploratory and labelled so.
+## AMENDMENT A1 (2026-10-20; written before any expression data or DE results were viewed)
+Reason: (a) metadata audit of GSE153960 showed no C9orf72 status, age, sex or RIN in GEO;
+(b) the project targets the ALS-FTD spectrum, so an FTD arm is required.
+Changes:
+1. GSE153960 (NYGC) is used for ALS-spectrum vs control, not for C9-specific claims.
+   Covariates: platform, library prep, RNA-seq-inferred sex.
+2. C9-specific ALS comparisons (C9 vs control, C9 vs sporadic) use GSE67196.
+3. FTD arm: RiMod-FTD (ArrayExpress E-MTAB-12647; FigShare counts; metadata from
+   Sci Data 2023 Supp. Table 1). Primary: C9-FTD vs control. Secondary: C9-FTD vs (GRN+MAPT).
+   Covariates: age, sex, RIN, pH.
+4. Gate G1 amended: "spectrum-level supported" if up in the ALS arm (FDR < 0.05) AND
+   directionally concordant (nominal p < 0.05) in the FTD arm; otherwise "arm-specific".
+5. Anchor region: frontal cortex where available. Region rule applies to NYGC.
+6. Donor-overlap check between NYGC and RiMod-FTD before calling them independent.
+7. Exact group definitions are fixed in Amendment A2 after tabulating group labels, before DE.
+8. Thresholds, gene sets, nodes and other gates are unchanged.
