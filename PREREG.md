@@ -79,3 +79,25 @@ Changes:
 6. Donor-overlap check between NYGC and RiMod-FTD before calling them independent.
 7. Exact group definitions are fixed in Amendment A2 after tabulating group labels, before DE.
 8. Thresholds, gene sets, nodes and other gates are unchanged.
+
+## AMENDMENT A2 (2026-10-20; written before any expression data or DE results were viewed)
+Basis: metadata tabulation only (sample labels, tissue, platform).
+1. NYGC GSE153960, primary: tissue == "Cortex Frontal". Cases = group exactly
+   "ALS Spectrum MND" (n=156; 70 HiSeq, 86 NovaSeq). Controls = group exactly
+   "Non-Neurological Control" (n=56; 18 HiSeq, 38 NovaSeq). All other labels excluded.
+   Each donor has exactly one frontal sample.
+2. NYGC secondary tissue (pre-specified): "Spinal Cord Cervical", same group definitions
+   (ALS n=161, control n=41), labelled secondary because of neuron loss and gliosis.
+3. NYGC sensitivity analyses (frontal cortex): (a) cases = "ALS Spectrum MND" + "ALS Spectrum
+   MND, Other Neurological Disorders" (n=203) vs same controls; (b) NovaSeq-only
+   (86 vs 38); (c) technical surrogate variables from sva with disease group protected.
+4. NYGC covariates: platform (perfectly confounded with library prep, so one batch term)
+   and RNA-seq-inferred sex. Age and RNA quality are unavailable in GEO: stated limitation.
+   "ALS Spectrum MND" may include ALS-FTD and C9/non-C9 cases; GEO does not separate them.
+5. GSE67196, primary: Frontal Cortex; groups c9ALS (n=8), sALS (n=10), Healthy (n=9).
+   Comparisons: c9ALS vs Healthy; c9ALS vs sALS; sALS vs Healthy. Cerebellum is secondary.
+   Primary test is the pathway-level fgsea (Sec. 5); the six-node family test is secondary.
+   Results are labelled supportive (small n).
+6. Node-level family test (all datasets): CGAS, STING1, JAK1, JAK2, IRF3, TBK1 tested as one
+   pre-specified family with BH correction across 6 genes, reported alongside genome-wide FDR.
+7. All thresholds, gene sets, gates and other rules are unchanged.
