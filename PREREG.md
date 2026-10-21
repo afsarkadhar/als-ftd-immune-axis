@@ -114,3 +114,10 @@ this document. No thresholds, gene sets, nodes, gates or scoring weights change.
 3. Exploratory (does not enter any gate): add a vascular/endothelial marker-score PC to the
    cell-composition surrogate covariates in the Sec. 4 sensitivity analysis.
 4. Framing: the project is the ALS-FTD spectrum with C9orf72 as anchor (as in A1); no rule changes.
+
+## AMENDMENT A4 (2026-10-21; written before any expression data or DE results were viewed)
+Basis: strict one-to-one reconciliation of NYGC counts columns to GEO metadata on `sample id alt:ch1`, plus a donor-uniqueness check.
+1. 1,639 samples map. Excluded and logged (results/nygc_exclusion_log.csv): 19 counts columns (CGND-HRA-00440 to 00459, 00453 absent) with no GEO row; CGND-HRA-01288-2 (two GSMs, thoracic cord, outside A2); 197 GEO rows with no counts column.
+2. Analysed n replaces the metadata-only counts in A2. Frontal primary: 154 ALS Spectrum MND (70 HiSeq / 84 NovaSeq) vs 56 controls (18 / 38). NovaSeq-only sensitivity: 84 vs 38. A2.3a sensitivity: 201 vs 56.
+3. Cervical secondary: 155 cases (50 / 105) vs 41 controls (12 / 29). Donors are unique within the A2 groups in both tissues, so no de-duplication rule is applied.
+4. No thresholds, gene sets, nodes, gates or scoring weights change.
