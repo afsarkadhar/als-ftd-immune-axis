@@ -101,3 +101,16 @@ Basis: metadata tabulation only (sample labels, tissue, platform).
 6. Node-level family test (all datasets): CGAS, STING1, JAK1, JAK2, IRF3, TBK1 tested as one
    pre-specified family with BH correction across 6 genes, reported alongside genome-wide FDR.
 7. All thresholds, gene sets, gates and other rules are unchanged.
+
+## AMENDMENT A3 (2026-10-21; written before any expression data or DE results were viewed)
+Basis: literature check (literature/search_log.md, literature/prior_art_notes.md) and a read-through of
+this document. No thresholds, gene sets, nodes, gates or scoring weights change.
+1. Count inputs (clarification). "Raw counts" in Sec. 4 means: NYGC RSEM expected counts, rounded to
+   integers; RiMod-FTD Salmon estimated counts, imported and rounded (or via tximport). GSE67196 input
+   format is recorded at download; any deviation is logged as a dated amendment.
+2. Independence checks. Before any pair of datasets (NYGC, GSE67196, RiMod-FTD) is called independent,
+   donor overlap is checked wherever identifiers allow. Where overlap cannot be assessed, the pair is
+   labelled "independence unverified" and claims are labelled "single-cohort", as in Sec. 3.
+3. Exploratory (does not enter any gate): add a vascular/endothelial marker-score PC to the
+   cell-composition surrogate covariates in the Sec. 4 sensitivity analysis.
+4. Framing: the project is the ALS-FTD spectrum with C9orf72 as anchor (as in A1); no rule changes.
