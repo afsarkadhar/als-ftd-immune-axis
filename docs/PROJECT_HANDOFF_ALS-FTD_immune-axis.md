@@ -567,3 +567,54 @@ Basis: the A7 metadata merge (scripts/10_merge_metadata.R) showed that 2 of the 
 
 ## 12.42 Suggested first message for the next chat
 "Continue my ALS-FTD immune-axis project from the attached handoff file and its addenda (sections 12.1 to 12.42). I run R and RStudio locally on Windows, use Git Bash, and I'm new to R and transcriptomics. First help me verify git (`git log --oneline -6` should include c9a4dd3, the sensitivity results, and `git status` should be clean except for the untracked A7 analysis table). Then guide me one step at a time: the optional RIN metadata check, then A8 (sva) and A9 (robustness rule), each committed before it is used and before any node is viewed. Do not open gene-level results for the six nodes yet. Keep recording each major step as an addendum block I can paste into the handoff file."
+
+---
+
+# ADDENDUM 5 (append after Section 12.42 of the handoff file; same day, 2026-11-15, later part of session 2)
+# Covers: RIN metadata check (with a correction to the 7e reading in addendum 4), Amendment A8 (sva), the sva script and its results, and the revised next steps. **This supersedes the "Revised next steps" list in Section 12.40.**
+
+## 12.43 Git record (all pushed)
+- Addendum 4 pushed as `2a1eb3c`.
+- `aaada90` Amendment A8 (committed before any surrogate variable existed); `cf5bb33` `scripts/13_sva_frontal_A8.R` (committed BEFORE it was run); `10b2289` A8 results (4 files).
+- At the last check `git status` was clean except `results/nygc_frontal_A7_analysis_table.csv` (untracked on purpose; script 10 regenerates it).
+
+## 12.44 RIN metadata check (descriptive; A7 table only; no counts, no model, no gene result)
+- RIN by group: ALS n = 154, mean 6.17, SD 1.42, median 6.60; control n = 50, mean 5.71, SD 1.23, median 5.70; Wilcoxon W = 4809.5, p = 0.008 (descriptive; this check was not pre-specified). By platform: HiSeq ALS 6.30 (n = 70) vs control 5.58 (n = 18); NovaSeq ALS 6.06 (n = 84) vs control 5.79 (n = 32). So RNA quality is partly tied to disease status, and RIN is adjusted only as a straight line in the primary model.
+- The RIN >= 5.5 filter removed a similar share of each group (44 of 154 ALS = 29%; 17 of 50 controls = 34%) but not evenly across sites. Samples kept (ALS / control; before the filter in brackets): University College London 14 / 21 (21 / 24); Academic Medical Center 24 / 4 (36 / 10); Johns Hopkins 15 / 3 (26 / 7); Georgetown 4 / 2 (6 / 6); Barrow 12 / 1 (16 / 1); Columbia 22 / 1 (28 / 1); UC San Diego 18 / 1 (20 / 1); Other 1 / 0.
+- **Correction to addendum 4 (12.37 and 12.41), which stays as written in that addendum:** in sensitivity 7e, 21 of the 33 controls (64%) come from one site (UCL), so the ALS vs control contrast is identified almost entirely at that site. Low power and a reshaped site structure explain the small number of significant genes in 7e at least as well as RNA-quality dependence does. The rough effective-sample-size calculation in 12.37 ignored the site structure and is superseded. Paper wording: state that RIN differs between groups and that RIN >= 5.5 leaves a control set dominated by one site; treat 7e as a low-information run, not as evidence that the primary signal is an RNA-quality artefact. For A9, 7e is checked for direction only.
+- Decision: no RIN-spline or other extra RIN model is added (another analyst choice; sva estimates hidden quality-related structure). Any such model would need its own dated amendment labelled exploratory before it is run.
+
+## 12.45 Amendment A8 (commit `aaada90`)
+- One sva analysis, on the A7 set (NYGC frontal cortex, 154 ALS vs 50 control), disease group protected. **Deviation from A2.3(c):** the GEO-only sva (154 vs 56; platform and sex) is not run, because A7 replaced that design as the primary and the GEO-only set lacks the registered covariates; this is stated in A8.1.
+- Input: integer counts after the A7 filter (19,902 genes). svaseq full model `~ platform + sex + age_at_death + rin + site + group`, null `~ platform + sex + age_at_death + rin + site`. SV count by `num.sv` (method "be", seed 1), cap 10, `set.seed(1)` before every sva call. Diagnostics saved before any DESeq2 fit; an SV with |r| > 0.5 with group is flagged, and then a second model without it is also fitted. sva is a sensitivity analysis and is not promoted; its role in A9 is fixed in A9.
+
+## 12.46 sva run: `scripts/13_sva_frontal_A8.R` (summary numbers and diagnostics only; no gene viewed)
+- Software: sva 3.60.0 (Bioconductor 3.23, R 4.6.2). Installing printed harmless notes (base R packages not updatable without admin rights).
+- `num.sv` estimate: 1; SVs used: 1. SV1 diagnostics: r with group 0.23 (not flagged); r with platform -0.44; r with sex 0.09; r with age 0.02; r with RIN 0.13; r with log library size -0.90; site R-squared 0.42. SV1 is mainly a sequencing-depth factor that also tracks platform and site.
+- Because no SV was flagged, no "without flagged SVs" model was fitted.
+- DESeq2 with SV1 (design = A7 design + SV1, 14 columns, full rank): FDR < 0.05 6,332 genes (3,375 up in ALS, 2,957 down); FDR < 0.05 and |log2FC| >= 0.5 280; genomic inflation 6.37; Cook's refit 0. A7 primary for comparison: 6,206 (3,388 / 2,818), 277, 6.24.
+- Interpretation: the A7 primary is stable under sva. Inflation did not fall (6.37 vs 6.24), so no single hidden technical factor explains the remaining inflation. It may reflect real broad biology (neuron loss, gliosis), which cannot be proven from these numbers; the paper should say "consistent with", not more. The sva model is not promoted.
+- Files: `results/nygc_frontal_A8_sva_diagnostics.csv`, `results/nygc_frontal_A8_svs.csv`, `results/nygc_frontal_A8_sva_summary.csv`, `results/nygc_frontal_A8_sva_all_SVs_deseq2_all_genes.csv` (all committed; the all-genes table has NOT been opened for the six nodes).
+
+## 12.47 Model inventory so far (all NYGC frontal cortex; summary numbers only)
+GEO-only A5 primary (154 vs 56; inflation 20.3); GEO-only A6 composition (154 vs 56; 17.3); **A7 primary** (154 vs 50; 6,206 FDR genes; 6.24); 7a consortium covariates (11.72); 7b no site (15.11); 7d outliers removed (152 vs 49; 6.11); 7d NovaSeq-only (84 vs 32; 4.90); 7e RIN >= 5.5 (110 vs 33; 40 FDR genes; 2.04); 7f without the 2 discordant donors (152 vs 50; 6.23); A8 sva (154 vs 50; 6,332; 6.37).
+
+## 12.48 Working notes added in this part
+- In R, no output after `library(pkg)` means it loaded; check with `"package:pkg" %in% search()` and `packageVersion("pkg")`.
+- Console text is cleared with Ctrl+L; the broom icon in the Environment pane removes objects from memory (nothing on disk is deleted). Session -> Restart R before heavy runs.
+- To do: record sva 3.60.0 in `docs/session_info.txt` (rerun `sessionInfo()` output into that file or note the version) before the methods section is written.
+- Gene-level result files remain unopened for the six nodes.
+
+## 12.49 Revised next steps (in order; supersedes 12.40)
+1. **Append this addendum to the handoff file, commit and push** (`git add docs/PROJECT_HANDOFF_ALS-FTD_immune-axis.md` only).
+2. **Write and commit A9 (robustness rule) before any node is viewed.** Header must disclose that summary counts of all sensitivity runs, the RIN check and the sva diagnostics had been seen, and that no node-level or gene-level result had. Settle in A9: which models count as "every sensitivity model" (7a, 7b, 7d x2, 7e, 7f, A8 sva, and the GEO-only A5 and A6 models); that 7e and the GEO-only models are checked for direction only; that direction is the sign of the Wald statistic.
+3. Separate amendments still to write: C9orf72 label definition (primary source flagship ST2 plus ST1 EH/RP-PCR columns; reconcile 503 donors in ST2 vs 506 in the preprint; O'Neill S1C as cross-check; rule for disagreements); subtype analysis decision (frontal has only 4 ALS-Glia; consider motor cortex only through a dated amendment).
+4. Then, for the first time: six-node family test (BH over 6 genes, alongside genome-wide), fgsea on the Wald statistic (Hallmark sets + KEGG hsa04623, 1,000 size-matched random sets), exported gene lists, each across all models under the A9 rule; cervical secondary (155 vs 41; flagship covers 194/196); A2.3a (201 vs 56; 47/47 covered).
+5. Later: GSE67196 (pathway-level primary) and RiMod-FTD (donor-overlap checks; any NYGC-derived dataset such as GSE137810 is not independent of GSE153960); update `literature/prior_art_notes.md` with the flagship preprint and O'Neill 2025; network layer, genetic layer, target decision, docking; cloud GPU plan for Boltz-2/MD.
+
+## 12.50 Draft methods and limitations wording added in this part (edit before use)
+- *Surrogate variables.* Hidden technical variation was estimated with sva (v3.60.0; svaseq on the filtered integer counts; number of surrogate variables by `num.sv`, method "be", capped at 10; known covariates in both full and null models; disease group protected). One surrogate variable was estimated; it correlated strongly with sequencing depth and weakly with disease group (r = 0.23) and was added to the primary design as a sensitivity analysis, giving a result near-identical to the primary model.
+- *Limitation to state.* RNA integrity differed between groups (ALS mean RIN 6.17 vs control 5.71); restricting to RIN >= 5.5 left a control set in which 64% of controls came from one collection site, so that analysis has low power and limited ability to separate disease from site.
+
+## 12.51 Suggested first message for the next chat
+"Continue my ALS-FTD immune-axis project from the attached handoff file and its addenda (sections 12.1 to 12.51). I run R and RStudio locally on Windows, use Git Bash, and I'm new to R and transcriptomics. First help me verify git (`git log --oneline -6` should include 10b2289, the A8 results, and `git status` should be clean except for the untracked A7 analysis table). Then guide me one step at a time: write and commit A9 (the robustness rule) before any node is viewed, then the C9orf72 label amendment, then the first look at the six nodes across all models. Do not open gene-level results for the six nodes before A9 is committed. Keep recording each major step as an addendum block I can paste into the handoff file."
