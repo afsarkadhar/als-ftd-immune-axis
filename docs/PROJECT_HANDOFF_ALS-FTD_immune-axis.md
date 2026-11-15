@@ -496,3 +496,74 @@ Basis: the A7 metadata merge (scripts/10_merge_metadata.R) showed that 2 of the 
 
 ## 12.33 Suggested first message for the next chat
 "Continue my ALS-FTD immune-axis project from the attached handoff file and its addenda (sections 12.1 to 12.33). I run R and RStudio locally on Windows, use Git Bash, and I'm new to R and transcriptomics. First help me verify git (`git log --oneline -9` should end with 64610b5 and `git status` should be clean except for the untracked A7 analysis table), then guide me one step at a time through the sensitivity script (A7.7 and A7b), committing it before I run it. Then A8 (sva) and A9 (robustness rule) before any node is viewed. Do not open gene-level results for the six nodes yet. Keep recording each major step as an addendum block I can paste into the handoff file."
+
+---
+
+# ADDENDUM 4 (append after Section 12.33 of the handoff file; same day, 2026-11-15, later part of session 2)
+# Covers: the pre-specified A7 sensitivity analyses (script 12) with their summary numbers, how to read them, what they imply for the robustness rule (A9), and the revised next steps. **This supersedes the "Revised next steps" list in Section 12.31.**
+
+## 12.34 Git record (all pushed)
+- Addendum 3 pushed as `5bcdeb4`.
+- `scripts/12_deseq2_frontal_A7_sensitivities.R` was committed and pushed BEFORE it was run (the push just before the results commit ended at `9745667`; verify with `git log --oneline -4`).
+- Results commit `c9a4dd3`: 13 files (6 full all-genes tables, 6 per-run summaries, the combined summary). Message notes that 7e has only 40 FDR genes and that no gene-level results were viewed.
+- At the last check `git status` was clean except `results/nygc_frontal_A7_analysis_table.csv` (untracked on purpose; script 10 regenerates it).
+
+## 12.35 Script 12: pre-specified sensitivities (A7.7 and A7b)
+- Six runs on the same frontal samples, all with control as reference, Wald test, contrast ALS vs control, DESeq2 defaults:
+  - 7a consortium covariates: `~ prep + MEAN_READ_LENGTH + PCT_CHIMERAS + group` (the two numeric covariates are centred and scaled; same model, better numerical conditioning).
+  - 7b A7 primary without site.
+  - 7d (i) A7 primary with the 3 pre-registered flag_A outliers removed (`CGND-HRA-01908` control, `01913` and `01918` ALS; flag column in the outlier file is `flag_prereg`).
+  - 7d (ii) A7 primary on NovaSeq samples only (platform term dropped; it has one level).
+  - 7e A7 primary on samples with RIN >= 5.5 only.
+  - 7f A7 primary without the 2 label-discordant donors (A7b).
+- Count filter in every run follows Sec. 4: >= 10 counts in >= n samples, n = the smallest group in that run. Genes kept therefore differ slightly between runs.
+- Guards: A7.6 full-rank check for every design before fitting; run stops if any is not full rank. A pre-flight mode (`PREFLIGHT_ONLY <- TRUE` before `source()`) builds designs and prints sample counts without fitting.
+- Pre-flight (all full rank): 7a 154 vs 50 (5 columns); 7b 154 vs 50 (6); 7d outliers 152 vs 49 (13); 7d NovaSeq 84 vs 32 (12); 7e 110 vs 33 (13); 7f 152 vs 50 (13).
+- Resumable: each finished run saves a summary file and is skipped on rerun.
+- **Gotcha:** the first full attempt stopped at "Pre-flight only" because `PREFLIGHT_ONLY` was still TRUE in the R session from the pre-flight run (the script only sets it when it does not exist). Fix: set `PREFLIGHT_ONLY <- FALSE` before `source()`, or restart R. No data were affected.
+- Outputs: `results/nygc_frontal_A7_sens_<run>_deseq2_all_genes.csv`, `..._summary.csv`, and `results/nygc_frontal_A7_sensitivity_summary.csv`.
+
+## 12.36 Results: summary numbers only (no gene, no candidate node viewed)
+| Model | ALS vs control | Genes after filter | FDR < 0.05 (up / down) | FDR < 0.05 and abs(log2FC) >= 0.5 | Inflation |
+|---|---|---|---|---|---|
+| A7 primary | 154 vs 50 | 19,902 | 6,206 (3,388 / 2,818) | 277 | 6.24 |
+| 7a consortium covariates | 154 vs 50 | 19,902 | 10,262 (5,301 / 4,961) | 766 | 11.72 |
+| 7b no site | 154 vs 50 | 19,902 | 11,427 (5,703 / 5,724) | 1,383 | 15.11 |
+| 7d outliers removed | 152 vs 49 | 19,888 | 6,058 (3,262 / 2,796) | 285 | 6.11 |
+| 7d NovaSeq only | 84 vs 32 | 20,200 | 5,007 (2,732 / 2,275) | 694 | 4.90 |
+| 7e RIN >= 5.5 | 110 vs 33 | 19,896 | **40** (16 / 24) | 17 | 2.04 |
+| 7f without discordant donors | 152 vs 50 | 19,888 | 6,180 (3,369 / 2,811) | 279 | 6.23 |
+- Genes refit after Cook's handling: 0 in every run (the earlier GEO-only primary had 44). Earlier GEO-only models: inflation 20.3 (A5 primary) and 17.3 (A6 composition).
+
+## 12.37 Interpretation (fixed for the paper; no model is promoted for a better-looking result)
+- Collection site is the dominant technical factor: removing it raises inflation from 6.24 to 15.11 and almost doubles the number of significant genes; the consortium covariates alone (7a) also leave inflation high (11.72). This supports keeping site in the primary model.
+- The primary result is not driven by the 3 outlier samples or the 2 label-discordant donors (7d outliers and 7f are nearly identical to the primary) and not by sequencing platform (NovaSeq-only still gives 5,007 genes, inflation 4.90).
+- **7e is the important caveat.** With RIN >= 5.5 only 40 genes remain (inflation 2.04). Two explanations, not mutually exclusive: lower power (110 vs 33 samples) and RNA-quality dependence of part of the broad signal (RIN is adjusted only linearly in the primary; ALS RIN is slightly higher than control RIN on average). A rough effective-sample-size calculation suggested power alone would lower inflation to roughly 4, not 2; this calculation was not verified and assumes effects are spread evenly across genes, so treat it as a pointer, not a finding. State in the paper that the primary result is sensitive to RNA quality and that 7e is the lowest-power run.
+- Genome-wide DEG counts differ a lot between models, so they should not be a headline result; claims should rest on node-level and pathway-level results judged by the robustness rule.
+
+## 12.38 Implication for A9 (robustness rule; to be written and committed before any node is viewed)
+- Draft rule (from 12.21): a node or pathway is "robust" only if significant in the primary model and in the same direction in every sensitivity model, otherwise "model-dependent".
+- **Disclosure needed in the A9 header:** the summary counts of all sensitivity runs (including the small 7e result) had been seen when A9 was written; no node-level or gene-level result had been viewed. The rule must be justified on principle and not tuned to how any node behaves.
+- Open choices for A9 to settle before writing: which models count as "every sensitivity model" (7a, 7b, 7d x2, 7e, 7f, the A5 and A6 GEO-only models, and sva once A8 is run); how to treat 7e given its low power (direction concordance only, not significance); and whether a direction check uses the sign of the Wald statistic for each node.
+
+## 12.39 Working notes added in this part
+- R keeps variables between runs in the same session: reset flags such as `PREFLIGHT_ONLY` explicitly, or use Session -> Restart R.
+- `git add results/nygc_frontal_A7_sens_*` (a pattern limited to named files) is acceptable; still never `git add .`.
+- The laptop (i3-N305, 8 GB RAM) completed all six fits in one session; the A7 primary and the sensitivities use the same data size.
+- Gene-level result files are on disk and committed but have NOT been opened for the six nodes.
+
+## 12.40 Revised next steps (in order; supersedes 12.31)
+1. **Append this addendum to the handoff file, commit and push** (`git add docs/PROJECT_HANDOFF_ALS-FTD_immune-axis.md` only).
+2. **Optional metadata-only check of RIN (no model, no expression):** compare the RIN distribution between ALS and control in the A7 table (and, for the paper, state the 7e sample loss by group: 44 ALS and 17 control samples removed). Proposed, not yet decided; anything modelled beyond this would need a dated amendment labelled exploratory.
+3. **Write and commit A8 (sva) before running sva:** SV count by `sva::num.sv` (method "be", `set.seed(1)`, cap 10); `svaseq` full model `~ platform + sex + group`, null `~ platform + sex`; diagnostics (SV correlation with group, platform, sex, composition PCs, log library size, outlier flag; flag SVs with |r| > 0.5 with group). The amendment must also say which covariates the sva variant of the A7 design includes, and whether it enters the A9 rule.
+4. **Write and commit A9 (robustness rule) before any node is viewed**, with the disclosure in 12.38 and the open choices settled.
+5. Separate amendments still to write: C9orf72 label definition (primary source flagship ST2 plus ST1 EH/RP-PCR columns; reconcile 503 donors in ST2 vs 506 in the preprint; O'Neill S1C as cross-check; rule for disagreements); subtype analysis decision (frontal has only 4 ALS-Glia; consider motor cortex only through a dated amendment).
+6. Then: six-node family test (BH over 6 genes, alongside genome-wide), fgsea on the Wald statistic (Hallmark sets + KEGG hsa04623, 1,000 size-matched random sets), exported gene lists, each across all models under the A9 rule; cervical secondary (155 vs 41; flagship covers 194/196); A2.3a (201 vs 56; 47/47 covered).
+7. Later: GSE67196 (pathway-level primary) and RiMod-FTD (donor-overlap checks; any NYGC-derived dataset such as GSE137810 is not independent of GSE153960); update `literature/prior_art_notes.md` with the flagship preprint and O'Neill 2025; network layer, genetic layer, target decision, docking; cloud GPU plan for Boltz-2/MD.
+
+## 12.41 Draft methods and limitations wording added in this part (edit before use)
+- *Sensitivity analyses.* The primary model was refitted under six pre-specified variations: consortium technical covariates only, without collection site, without three pre-registered expression outliers, in NovaSeq samples only, in samples with RIN >= 5.5, and without two donors with discordant disease labels between GEO and the consortium donor table. Each was fitted with the same DESeq2 settings and the count filter was applied per run using that run's smallest group.
+- *Limitation to state.* The primary result depended on RNA quality: restricting to RIN >= 5.5 (110 cases, 33 controls) left 40 significant genes at FDR < 0.05, compared with 6,206 in the primary model, because of reduced power and possible RIN-dependent signal; removing collection site from the model raised the genomic inflation factor from 6.24 to 15.11.
+
+## 12.42 Suggested first message for the next chat
+"Continue my ALS-FTD immune-axis project from the attached handoff file and its addenda (sections 12.1 to 12.42). I run R and RStudio locally on Windows, use Git Bash, and I'm new to R and transcriptomics. First help me verify git (`git log --oneline -6` should include c9a4dd3, the sensitivity results, and `git status` should be clean except for the untracked A7 analysis table). Then guide me one step at a time: the optional RIN metadata check, then A8 (sva) and A9 (robustness rule), each committed before it is used and before any node is viewed. Do not open gene-level results for the six nodes yet. Keep recording each major step as an addendum block I can paste into the handoff file."
