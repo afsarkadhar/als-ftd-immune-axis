@@ -425,3 +425,74 @@ Notes on the draft: the supervisor-style choices to confirm before committing ar
 
 ## 12.24 Suggested first message for the next chat
 "Continue my ALS-FTD immune-axis project from the attached handoff file and its addenda (sections 12.1 to 12.24). I run R and RStudio locally on Windows (Colab is gone), use Git Bash, and I'm new to R and transcriptomics. First help me verify and commit my pending git state (the NOTE ON A6 in PREREG.md, docs/nygc_metadata_source.md, the handoff file), one step at a time. Then guide me to finalise and commit Amendment A7 (metadata covariates) before any model uses it, then write the metadata-merge script (no model yet). Keep recording each major step as an addendum block I can paste into the handoff file."
+
+---
+
+# ADDENDUM 3 (append after Section 12.24 of the handoff file; same day, 2026-11-15, later part of session 2)
+# Covers: git state verified and pushed, provenance file, the four A7 design decisions, A7 and A7b committed, metadata merge (script 10), A7 primary DESeq2 (script 11) and its summary numbers, new working notes, and the revised next steps. **This supersedes the "Revised next steps" list in Section 12.21.**
+
+## 12.25 Git record completed (all pushed; verified)
+- NOTE ON A6 checked complete (last line ends "...before the script it governs is run."), then committed.
+- `docs/nygc_metadata_source.md` created with the real values: Zenodo record https://zenodo.org/records/20090702 (DOI 10.5281/zenodo.20090702), licence CC BY 4.0, SHA-256 values as in 12.19. Committed.
+- Handoff file (addenda 1 and 2) committed.
+- Push problem and fix: the first two pushes failed (`curl 52 Empty reply from server`, then `HTTP 408`). Fixed with `git config http.version HTTP/1.1` (set for this repo only); the push then worked. Commits were never lost.
+- Commit order in `git log` (oldest to newest): `385c308` provenance file; `b67ca13` Note on A6; `9498219` handoff update; `e1c1eb4` Amendment A7; `395b388` Amendment A7b; `f3acf47` script 10 and exclusions file; `5aa2f2f` script 11 (committed BEFORE it was run, as the A6 process change requires); `64610b5` A7 primary DESeq2 results table.
+- At the last check `git status` was clean except `results/nygc_frontal_A7_analysis_table.csv` (untracked on purpose; script 10 regenerates it).
+
+## 12.26 Decisions made for A7 (the four open choices; all fixed before any model used the new covariates)
+1. Collection site stays in the primary model (matches v1 Sec. 4; the site-free model is sensitivity 7b).
+2. Sites with fewer than 5 samples in the analysed set are merged into "Other" (affects 1 sample: MGH/Johns Hopkins). The near-aliased sites (Barrow, Columbia, UC San Diego; one control each) are NOT merged, to keep the site adjustment intact.
+3. RIN is a covariate only, no RIN filter in the primary model; a new sensitivity 7e (RIN >= 5.5 only) was added (O'Neill et al. used 5.5).
+4. Complete-case rule kept (no imputation); exclusions are logged in `results/nygc_frontal_A7_exclusions.csv`.
+Changes from the draft in 12.20: item 3 states the site and small-site decisions; item 4 states that RIN is a covariate with no filter; item 7 adds sensitivity (e). Everything else is word for word the draft.
+
+## 12.27 Amendments added to `PREREG.md` this part
+- **A7** (commit `e1c1eb4`): primary model for NYGC frontal cortex `~ platform + sex + age_at_death + RIN + site + group` (control = reference), restoring the v1 covariates; sources ST3 + ST1 (O'Neill only validates); sensitivities (a) consortium covariates (library prep, MEAN_READ_LENGTH, PCT_CHIMERAS), (b) no site, (c) GEO-only models already fitted, (d) outlier-removed (flag_A) and NovaSeq-only with the A7 design, (e) RIN >= 5.5. Full text is in `PREREG.md`. Note: committing A7b made git show item 11 of A7 as "changed" only because the file had no final newline (`\ No newline at end of file`); the wording was verified identical (check printed IDENTICAL).
+- **A7b** (commit `395b388`), as appended:
+```markdown
+## AMENDMENT A7b (2026-11-15; written before any model using the A7 covariates was fitted. scripts/10_merge_metadata.R had been run, reading metadata only; no expression values or gene-level results were viewed.)
+Basis: the A7 metadata merge (scripts/10_merge_metadata.R) showed that 2 of the 154 frontal ALS samples (CGND-HRA-02161 and CGND-HRA-02168, both Barrow Neurological Institute) carry the GEO group label "ALS Spectrum MND" but the flagship ST1 subject_group "ALS Spectrum MND, Other Neurological Disorders", and both are flagged used_in_analysis = FALSE in flagship ST3. The other 152 ALS samples and all 50 controls agree between GEO and ST1.
+1. Group definitions are unchanged (A2, A4, A7.3): the A7 primary remains 154 ALS vs 50 controls.
+2. New pre-specified sensitivity (f), reported with those in A7.7: the A7 primary design with these 2 samples removed (152 ALS vs 50 controls), with the full-rank check of A7.6 repeated.
+3. Record of the A7.6 checks on the primary table: full rank (13 of 13 design columns); largest variance inflation 2.31 (Johns Hopkins site term); RNA-inferred sex agrees with ST1 sex_call in 204 of 204 and platform agrees with ST3 rna_platform in 204 of 204 matched samples; the 6 controls absent from ST3 are excluded as listed in A7.5.
+4. No thresholds, gene sets, nodes, gates or scoring weights change.
+```
+
+## 12.28 Metadata merge: `scripts/10_merge_metadata.R` (metadata only; no counts, no model; committed in `f3acf47`)
+- Spreadsheet quirk: in `NYGC_Flagship_ST_1_3_Metadata.xlsx`, sheets ST1 and ST3 have a title in row 1 and the real header in row 2, so read with `skip = 1` (otherwise columns are named `...2`, `...3`). ST1 has 4,749 donors; ST3 has 2,574 RNA samples. Key columns used: ST3 `rna_id`, `donor_id`, `rin`, `rna_platform`, `rna_prep`, `MEAN_READ_LENGTH`, `PCT_CHIMERAS`, `used_in_analysis`; ST1 `donor_id`, `sex_call`, `site_specimen_collected`, `age_at_death`, `subject_group`.
+- Result: of the 210 frontal samples, 204 match ST3 and ST1 (the 6 unmatched are the controls named in A7.5). RNA-inferred sex agrees with ST1 `sex_call` in 204/204; GEO platform agrees with ST3 `rna_platform` (GPL16791 = HiSeq 2500, GPL24676 = NovaSeq V1) in 204/204. No non-numeric age values besides "90 or older" (age 22 to 90); RIN 2.0 to 8.9.
+- **Analysed set: 154 ALS vs 50 controls.** Group x platform: HiSeq ALS 70 / control 18; NovaSeq ALS 84 / control 32. Group x sex: ALS F69/M85; control F24/M26. Group x site (ALS / control): Academic Medical Center 36/10; Barrow 16/1; Columbia 28/1; Georgetown 6/6; Johns Hopkins 26/7; Other (the merged MGH/Johns Hopkins sample) 1/0; University College London 21/24; UC San Diego 20/1. About 47 of the 50 controls come from the four sites that have both groups.
+- Design check (A7.6): 13 columns, rank 13 (full rank); largest variance inflation 2.31 (Johns Hopkins site term); groupALS 1.26.
+- **New finding:** 2 ALS samples (`CGND-HRA-02161`, `CGND-HRA-02168`; both Barrow; RIN 8.0 and 6.5) are labelled "ALS Spectrum MND" in GEO but "ALS Spectrum MND, Other Neurological Disorders" in ST1, and both are the only two frontal ALS samples with `used_in_analysis = FALSE`. Handled by A7b (primary unchanged; sensitivity (f) without them).
+- Files: `results/nygc_frontal_A7_exclusions.csv` (committed; 6 controls, reason "not in ST3"); `results/nygc_frontal_A7_analysis_table.csv` (not committed; regenerated by the script).
+
+## 12.29 A7 primary DESeq2: `scripts/11_deseq2_frontal_A7_primary.R` (committed in `5aa2f2f` BEFORE it was run; results committed in `64610b5`)
+- Same style as scripts 03 and 07. Guards: exactly 204 samples, 154 ALS / 50 control, design full rank. Count filter (Sec. 4): >= 10 counts in >= 50 samples (smallest group). Wald test, default DESeq2 settings (A5.1), control = reference, contrast ALS vs control (positive log2FC = higher in ALS).
+- Summary numbers (the only numbers viewed; **no individual gene and no candidate node has been looked at**): genes after filter 19,902 of 58,929; size factors 0.49 to 3.36; genes refit after Cook's handling 0 (the earlier GEO-only primary had 44); all 19,902 genes have a p-value; **FDR < 0.05: 6,206 genes (3,388 up in ALS, 2,818 down)**; FDR < 0.05 and |log2FC| >= 0.5: 277; **genomic inflation 6.24**.
+- Comparison with the GEO-only models: inflation 20.3 (A5 primary) and 17.3 (A6 composition); the A7 covariates removed most of the inflation, but 6.24 is still well above 1. Wide differential expression is expected in this cohort (the consortium reports about 10,000 DEGs in frontal cortex), so a high inflation does not by itself prove residual confounding.
+- **Interpretation rule (fixed, per A6 and A7.8):** the A7 model is the primary because it restores the covariates registered in v1 and was specified in advance, NOT because its inflation is lower. All models are reported; none is promoted for a better-looking result.
+- DESeq2 messages in the run were harmless (reminders that numeric covariates enter linearly, a note about characters in site names). The fit converged.
+- Outputs: `results/nygc_frontal_A7_primary_deseq2_all_genes.csv` (committed; do not open for the six nodes until A9 is committed); `data/processed/nygc_frontal_A7_primary_dds.rds` (gitignored).
+
+## 12.30 Working notes added in this part
+- Windows: save new text files from Notepad with "Save as type: All Files" so the name does not end in `.txt`. `readxl` installed fine; the Rtools warning during `install.packages` was harmless (a binary package was used).
+- Git habits that worked: add files by name only (never `git add .`); check `git diff --stat` before committing; a "1 deletion" in the diff can be only a missing final newline (`\ No newline at end of file`), verified by comparing the old and new last line.
+- Process rule kept: each amendment and each script is committed and pushed before it is run or before the analysis it governs.
+- Do NOT open or paste gene-level result files or the flagship ST4 to ST16 / O'Neill S2 to S7 tables for the six nodes until the robustness rule (A9) is committed.
+- The "log this step" request works: ask for an addendum block after each major step.
+
+## 12.31 Revised next steps (in order; supersedes 12.21)
+1. **Append this addendum to the handoff file, commit and push** (`git add docs/PROJECT_HANDOFF_ALS-FTD_immune-axis.md` only).
+2. **Sensitivity script (script 12; commit it before running it):** run the A7 design variants listed in A7.7 and A7b, saving full tables and printing summary numbers only (genes after filter, FDR counts, inflation): (a) consortium covariates (library prep, MEAN_READ_LENGTH, PCT_CHIMERAS + group); (b) A7 without site; (d) A7 with flag_A outliers removed (3 samples: CGND-HRA-01908 control, 01913 and 01918 ALS) and NovaSeq-only (the platform term must be dropped because it has a single level; the A7 balance table gives 84 ALS vs 32 control); (e) RIN >= 5.5 only; (f) without the 2 discordant donors (152 vs 50). Check full rank for each design (stop if not). Sensitivity (c) is already fitted. Planned details such as the count filter n per run are to be confirmed before writing the script.
+3. **Write and commit A8 (sva) before running sva:** SV count by `sva::num.sv` (method "be", `set.seed(1)`, cap 10); `svaseq` full model `~ platform + sex + group`, null `~ platform + sex`; diagnostics (SV correlation with group, platform, sex, composition PCs, log library size, outlier flag; flag SVs with |r| > 0.5 with group). Decide in the amendment which covariates the sva variant of the A7 design uses.
+4. **Write and commit A9 (robustness rule) before any node is viewed:** a node or pathway is "robust" only if significant in the primary model and in the same direction in every sensitivity model, otherwise "model-dependent".
+5. Separate amendments still to write: C9orf72 label definition (primary source flagship ST2 plus ST1 EH/RP-PCR columns; reconcile 503 donors in ST2 vs 506 in the preprint; O'Neill S1C as cross-check; rule for disagreements); subtype analysis decision (frontal has only 4 ALS-Glia; consider motor cortex only through a dated amendment).
+6. Then: six-node family test (BH over 6 genes, alongside genome-wide), fgsea on the Wald statistic (Hallmark sets + KEGG hsa04623, 1,000 size-matched random sets), exported gene lists; cervical secondary (155 vs 41; flagship covers 194/196); A2.3a (201 vs 56; 47/47 covered).
+7. Later: GSE67196 (pathway-level primary) and RiMod-FTD (donor-overlap checks; any NYGC-derived dataset such as GSE137810 is not independent of GSE153960); update `literature/prior_art_notes.md` with the flagship preprint and O'Neill 2025; network layer, genetic layer, target decision, docking; cloud GPU plan for Boltz-2/MD.
+
+## 12.32 Draft methods wording added in this part (edit before use)
+- *Primary model.* Differential expression in NYGC frontal cortex (154 ALS-spectrum cases, 50 controls) used DESeq2 (Wald test) with the design `~ platform + sex + age at death + RIN + collection site + group`; covariates were taken from the consortium's supplementary tables, sites with fewer than 5 samples were merged, and complete cases were analysed. Genes were retained with at least 10 counts in at least 50 samples (19,902 genes). The model was specified in a dated pre-registration amendment (A7) and committed before it was fitted; sensitivity analyses (A7.7, A7b) are reported alongside it.
+- *Limitation to state.* Two ALS samples carry discordant disease labels between GEO and the consortium's donor table and are excluded in a pre-specified sensitivity analysis; collection site is imbalanced between groups, so the site-adjusted estimate relies mainly on four sites with both groups; the genomic inflation factor of the primary model was 6.24, consistent with widespread expression differences in this tissue but not proof of the absence of residual confounding.
+
+## 12.33 Suggested first message for the next chat
+"Continue my ALS-FTD immune-axis project from the attached handoff file and its addenda (sections 12.1 to 12.33). I run R and RStudio locally on Windows, use Git Bash, and I'm new to R and transcriptomics. First help me verify git (`git log --oneline -9` should end with 64610b5 and `git status` should be clean except for the untracked A7 analysis table), then guide me one step at a time through the sensitivity script (A7.7 and A7b), committing it before I run it. Then A8 (sva) and A9 (robustness rule) before any node is viewed. Do not open gene-level results for the six nodes yet. Keep recording each major step as an addendum block I can paste into the handoff file."
