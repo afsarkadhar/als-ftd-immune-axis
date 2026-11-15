@@ -151,3 +151,10 @@ Basis: NYGC flagship supplementary tables (Zenodo v3, 2026-05-08) and O'Neill et
 9. Disclosure. When this amendment was designed, it was already known that collection site is strongly imbalanced between cases and controls in the frontal set (for example 28 ALS vs 1 control at one site and 21 vs 24 at another), so the site-adjusted effect is identified mainly from sites with both groups.
 10. Not used here. C9orf72 status and ALS subtype labels are not used in A7. In the frontal set only 4 samples carry the ALS-Glia label (81 ALS-Ox, 25 ALS-TE among the 110 labelled), so the Sec. 12 subtype fallback is limited in this tissue; how to handle it is decided in a separate amendment.
 11. No thresholds, gene sets, nodes, gates or scoring weights change. Numbering: sva is A8, the robustness rule A9.
+
+## AMENDMENT A7b (2026-11-15; written before any model using the A7 covariates was fitted. scripts/10_merge_metadata.R had been run, reading metadata only; no expression values or gene-level results were viewed.)
+Basis: the A7 metadata merge (scripts/10_merge_metadata.R) showed that 2 of the 154 frontal ALS samples (CGND-HRA-02161 and CGND-HRA-02168, both Barrow Neurological Institute) carry the GEO group label "ALS Spectrum MND" but the flagship ST1 subject_group "ALS Spectrum MND, Other Neurological Disorders", and both are flagged used_in_analysis = FALSE in flagship ST3. The other 152 ALS samples and all 50 controls agree between GEO and ST1.
+1. Group definitions are unchanged (A2, A4, A7.3): the A7 primary remains 154 ALS vs 50 controls.
+2. New pre-specified sensitivity (f), reported with those in A7.7: the A7 primary design with these 2 samples removed (152 ALS vs 50 controls), with the full-rank check of A7.6 repeated.
+3. Record of the A7.6 checks on the primary table: full rank (13 of 13 design columns); largest variance inflation 2.31 (Johns Hopkins site term); RNA-inferred sex agrees with ST1 sex_call in 204 of 204 and platform agrees with ST3 rna_platform in 204 of 204 matched samples; the 6 controls absent from ST3 are excluded as listed in A7.5.
+4. No thresholds, gene sets, nodes, gates or scoring weights change.
