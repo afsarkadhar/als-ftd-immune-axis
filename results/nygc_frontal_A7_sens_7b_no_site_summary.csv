@@ -1,0 +1,2 @@
+"run","n_ALS","n_control","genes_after_filter","genes_tested","fdr05","up","down","fdr05_lfc05","inflation","cook_refit"
+"7b_no_site",154,50,19902,19902,11427,5703,5724,1383,15.11,0
