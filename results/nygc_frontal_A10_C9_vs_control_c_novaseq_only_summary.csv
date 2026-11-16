@@ -1,0 +1,2 @@
+"run","n_C9","n_ref","genes_after_filter","genes_tested","fdr05","up","down","fdr05_lfc05","inflation","cook_refit"
+"C9_vs_control_c_novaseq_only",18,32,19839,19839,198,154,44,115,1.9,0
