@@ -1,0 +1,7 @@
+"symbol","role","primary_stat","primary_log2FC","primary_genomewide_FDR","primary_family_BH","label","detail"
+"CGAS","screen",-1.19,-0.16,0.366,0.355,"Not significant",""
+"STING1","screen",-0.64,-0.076,0.648,0.626,"Not significant",""
+"JAK1","screen",2.48,0.074,0.044,0.0394,"Robust",""
+"JAK2","screen",1.18,0.058,0.368,0.355,"Not significant",""
+"IRF3","expression only",0.19,0.01,0.9,0.85,"Not significant",""
+"TBK1","expression + flag (G3)",3.11,0.188,0.011,0.0112,"Robust",""
