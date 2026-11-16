@@ -686,3 +686,91 @@ GEO-only A5 primary (154 vs 56; inflation 20.3); GEO-only A6 composition (154 vs
 
 ## 12.60 Suggested first message for the next chat
 "Continue my ALS-FTD immune-axis project from the attached handoff file and its addenda (sections 12.1 to 12.60). I run R and RStudio locally on Windows, use Git Bash, and I'm new to R and transcriptomics. First help me verify git (`git log --oneline -6` should include 72d3667, the node results, and `git status` should be clean except for the untracked A7 analysis table). Then guide me one step at a time: write and commit Amendment A11 (pathway implementation) before any pathway is run, then the fgsea script, then the A10 C9 model fits. Do not change any rule fixed in A9 or A10. Keep recording each major step as an addendum block I can paste into the handoff file."
+
+---
+
+# ADDENDUM 7 (append after Section 12.60 of the handoff file; 2026-11-16, later part of session 2)
+# Covers: the pathway-set inspection, Amendment A11, the fgsea script and its results, interpretation of the ALS-arm pathway result, a note on what an FTD-only signal would mean, and the revised next steps. **This supersedes the "Revised next steps" list in Section 12.58.**
+
+## 12.61 Git record (all pushed)
+- Addendum 6 pushed as `cb40446`.
+- `8f73a9f` Amendment A11 (committed before any pathway result existed); `6b90d3e` `scripts/15_fgsea_A11.R` (committed BEFORE it was run); `509125d` fgsea results (6 files `results/fgsea_A11_*.csv`).
+- At the last check `git status` was clean except `results/nygc_frontal_A7_analysis_table.csv` (untracked on purpose; script 10 regenerates it).
+
+## 12.62 Pathway-set inspection before A11 (names, sizes and membership only; no result)
+- Software: R 4.6.2; fgsea 1.38.0; msigdbr 26.1.1 (MSigDB 2026.1.Hs). `print(msigdbr_collections(), n = 50)` errors in this version; use `as.data.frame(msigdbr_collections())`. In this release `collection = ` and `subcollection = ` are the argument names.
+- Sets of Sec. 5 and their overlap with the tested universe of the A7 primary (13,611 gene symbols): IFN-alpha response 97 genes (92 tested); IFN-gamma response 200 (180); inflammatory response 200 (160); TNFA signalling via NFKB 200 (180); IL6-JAK-STAT3 87 (66); KEGG cytosolic DNA sensing 55 (35).
+- **The only form of hsa04623 in this release is KEGG_LEGACY (an older KEGG release); that set does not contain CGAS** (it contains STING1, IRF3, TBK1, MAVS, RIGI, the POLR3 genes and others). Its 20 untested members are the output genes: 12 IFNA genes, IFNB1, CCL4, CCL4L2, CCL5, CXCL10, IL6, AIM2, ZBP1. It is therefore labelled "KEGG legacy cytosolic DNA-sensing" and described as signalling machinery, not as the cGAS-STING axis or its interferon output.
+- Search of KEGG Medicus, Reactome and WikiPathways for sets containing both CGAS and STING1 found nine sets. Relevant ones (genes / tested): REACTOME_CYTOSOLIC_SENSORS_OF_PATHOGEN_ASSOCIATED_DNA 64 / 61; WP_CYTOSOLIC_DNASENSING_PATHWAY 73 / 53; REACTOME_STING_MEDIATED_INDUCTION_OF_HOST_IMMUNE_RESPONSES 16 / 15; WP_PATHWAYS_OF_NUCLEIC_ACID_METABOLISM_AND_INNATE_IMMUNE_SENSING 16 / 15; KEGG_MEDICUS_REFERENCE_CGAS_STING_SIGNALING_PATHWAY 18 / **5 (not testable; below minimum size 15)**. The rest are disease or pathogen-specific (COVID-19, dengue, Kawasaki-like disease, mitochondrial response to SARS-CoV-2).
+- Selection rule fixed before any pathway result: among sets containing both CGAS and STING1, not named for a disease or pathogen, with at least 15 tested genes, take the one with the most tested genes. Result: the Reactome cytosolic-sensor set, used as an exploratory set outside the six-set family and outside A9. The WikiPathways DNA-sensing set was deliberately not added (two exploratory sets for the same idea would look like fishing).
+- Correction of an earlier remark: the random-set control does not guard against broad glial or composition shifts (random sets do not contain correlated genes). It is mainly a calibration and specificity check; correlation among the genes of a real set remains a limitation, stated in A11.9a.
+
+## 12.63 Amendment A11 (commit `8f73a9f`)
+- Scope: the A7 primary and the nine other frontal models of A9.2. Ranking by the DESeq2 Wald statistic; Ensembl version suffixes removed; IDs mapped with `results/gene_id_map_msigdbr.csv`; duplicate symbols keep the higher baseMean; unmapped dropped and logged. Method: `fgseaMultilevel`, minSize 15, maxSize 500, `scoreType = "std"`, default `gseaParam` and `eps`, `set.seed(1)` before every call. The six registered sets are one family (BH across six within each model; FDR < 0.05).
+- Specificity control (A11.5): in the A7 primary only, 1,000 random sets of the same size per tested set (Reactome set included); p = (1 + number with |NES| >= observed) / 1001; reported beside the FDR; does not change an A9 label.
+- A9 labels apply to the six registered sets only. Exploratory (A11.8, no gate, no label): (a) all 50 Hallmark sets in the A7 primary (BH across 50); (b) the Reactome set in all ten models.
+- Interpretation limits fixed in advance (A11.9): fgsea does not account for correlation among genes of a set; limits of the KEGG legacy set; a significant set does not show that a single node drives it.
+
+## 12.64 fgsea run: `scripts/15_fgsea_A11.R` (summary tables only)
+- Ranking log: ranked genes per model 13,611 (A7 primary, 7a, 7b, A8), 13,601 (7d outliers), 13,682 (7d NovaSeq), 13,633 (7e), 13,608 (7f), 13,571 (A5, A6); 4 duplicate symbols dropped in every model; 6,287 IDs unmapped in the A7 primary; no gene without a statistic. Guards matched A11: 13,611 ranked genes; per-set tested counts 92, 180, 160, 180, 66, 35; Reactome 61; KEGG Medicus 5 of 18 ranked, not testable.
+- NES by model (positive = higher in ALS). Columns: A7 primary, 7a, 7b, 7d outliers, 7d NovaSeq, 7e, 7f, A8 sva, A5 GEO-only, A6 composition.
+| Set | A7 | 7a | 7b | 7d-out | 7d-nova | 7e | 7f | A8 | A5 | A6 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| IFN-alpha | -2.05 | -1.56 | -1.62 | -2.02 | -0.81 | 1.21 | -1.97 | -2.09 | -1.84 | -1.98 |
+| IFN-gamma | -1.82 | -1.16 | -1.38 | -1.92 | 0.97 | 1.21 | -1.79 | -1.82 | -1.36 | -1.66 |
+| Inflammatory | -1.20 | 0.50 | 0.58 | -1.27 | 1.28 | 1.45 | -1.17 | -1.24 | 0.73 | 0.71 |
+| TNFA-NFKB | -1.67 | -0.99 | -0.82 | -1.56 | 0.86 | -1.08 | -1.66 | -1.73 | -0.56 | -0.42 |
+| IL6-JAK-STAT3 | -1.64 | -0.70 | -1.03 | -1.53 | 1.42 | 1.45 | -1.57 | -1.69 | -0.85 | -0.81 |
+| KEGG legacy DNA-sensing | -0.75 | 0.61 | 0.78 | -0.69 | 0.94 | 1.54 | -0.75 | -0.71 | 0.75 | 0.72 |
+- FDR (BH across the six sets) by model, same column order:
+| Set | A7 | 7a | 7b | 7d-out | 7d-nova | 7e | 7f | A8 | A5 | A6 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| IFN-alpha | 0.000 | 0.048 | 0.018 | 0.000 | 0.866 | 0.177 | 0.000 | 0.000 | 0.001 | 0.000 |
+| IFN-gamma | 0.000 | 0.460 | 0.018 | 0.000 | 0.862 | 0.177 | 0.000 | 0.000 | 0.038 | 0.000 |
+| Inflammatory | 0.118 | 1.000 | 1.000 | 0.044 | 0.217 | 0.042 | 0.084 | 0.069 | 1.000 | 1.000 |
+| TNFA-NFKB | 0.000 | 1.000 | 1.000 | 0.001 | 0.866 | 0.231 | 0.000 | 0.000 | 1.000 | 1.000 |
+| IL6-JAK-STAT3 | 0.008 | 1.000 | 0.819 | 0.013 | 0.217 | 0.058 | 0.007 | 0.005 | 1.000 | 1.000 |
+| KEGG legacy DNA-sensing | 0.879 | 1.000 | 1.000 | 0.941 | 0.862 | 0.069 | 0.879 | 0.924 | 1.000 | 1.000 |
+- **A9 labels (registered sets; A7 primary NES, FDR):** IFN-alpha (-2.05; 2.5e-05) Model-dependent (direction differs in 7e); IFN-gamma (-1.82; 2.5e-05) Model-dependent (7d NovaSeq, 7e); TNFA-NFKB (-1.67; 1.5e-04) Model-dependent (7d NovaSeq); IL6-JAK-STAT3 (-1.64; 0.0081) Model-dependent (7d NovaSeq, 7e); Inflammatory response (-1.20; 0.118) Not significant; KEGG legacy DNA-sensing (-0.75; 0.879) Not significant. No registered set is "Robust".
+- Specificity control (A7 primary): p = 0.00100 for IFN-alpha, IFN-gamma and TNFA-NFKB (the smallest value possible with 1,000 random sets), 0.0060 for IL6-JAK-STAT3, 0.152 for inflammatory response, 0.845 for KEGG legacy, 0.237 for the Reactome set.
+- Exploratory Reactome cytosolic-sensor set (61 ranked genes; contains CGAS and STING1): NES by model 1.15 (A7 primary, nominal p 0.251), 1.03 (7a), 1.17 (7b), 1.11 (7d-out), 1.27 (7d-nova, p 0.121), 1.46 (7e, p 0.031), 1.15 (7f), 1.15 (A8), 1.16 (A5), 1.07 (A6); the single nominal p < 0.05 (7e) is one of ten uncorrected exploratory runs.
+- Exploratory Hallmark (A7 primary, BH across 50): 30 of 50 sets at FDR < 0.05 (19 up in ALS, 11 down). The five registered Hallmark sets rank 6th (IFN-alpha), 10th (IFN-gamma), 15th (TNFA-NFKB), 16th (IL6-JAK-STAT3) and 36th (inflammatory) by |NES|; their NES in this run (for example -2.01 for IFN-alpha) differ slightly from the registered run (-2.05) because fgseaMultilevel is stochastic and the pathway list differs.
+- Other observations: IFN-alpha is negative in 9 of 10 models and positive only in 7e; the four significant sets turn positive in the NovaSeq-only and RIN >= 5.5 runs (the smallest, highest-quality subsets), where none of them is significant (FDR 0.058 to 0.87); the inflammatory-response set is positive and significant in 7e (FDR 0.042; not an A9 outcome because it is not significant in the primary) and negative and significant in 7d outliers (FDR 0.044).
+
+## 12.65 Interpretation (fixed for the paper; ALS spectrum vs control, NYGC frontal cortex)
+- **The pre-registered direction (immune programme higher in ALS) is not supported in this arm.** The interferon-alpha, interferon-gamma, TNFA-NFKB and IL6-JAK-STAT3 sets are lower in ALS in the primary and in most models, but none is stable across models (A9: Model-dependent), so none is a robust finding in either direction. The DNA-sensing sets are flat (KEGG legacy NES -0.75; Reactome with CGAS and STING1 NES +1.15, p 0.25), so adding CGAS to the pathway test did not change the picture.
+- The six sets do not stand out from the rest of Hallmark (30 of 50 shifted); frontal cortex in ALS is broadly altered. The random-set control shows the four sets are not generic size-matched sets, but it cannot account for correlation among their genes.
+- The node and pathway results are compatible: JAK1 and TBK1 mRNA modestly higher (signalling machinery) alongside lower response-gene sets are different things.
+- Not shown: any C9orf72-specific effect (27 of 154 ALS cases are carriers, so ALS-vs-control would dilute a C9-specific signal), and nothing about the FTD arm.
+- Per Sec. 12, a null or opposite-direction result is reported as such.
+
+## 12.66 What an FTD-only signal would mean (discussion recorded; nothing decided)
+- A1.4 already covers it: a node is "spectrum-level supported" only if it is up in the ALS arm (FDR < 0.05) and directionally concordant (nominal p < 0.05) in the FTD arm; otherwise "arm-specific". An FTD-only cGAS-STING signal is a legitimate result with a pre-set label, and it would narrow the framing from the ALS-FTD spectrum to the FTD arm; it would not change the ALS-arm numbers above.
+- Cautions: (1) the ALS arm may dilute a C9-specific effect, so the A10 C9 comparison is the better test of the anchor; (2) several comparisons (ALS arm, C9 comparisons, cervical, GSE67196, FTD) give more chances for a lucky result and nothing corrects across them, so report the number of comparisons and treat a single-comparison signal cautiously; (3) do not redefine what the "real test" was after seeing FTD results; the FTD arm needs its own amendment (models, sensitivities, donor-overlap check) before any node is viewed there (A9.1).
+- Whether arm-specific nodes proceed to scoring and docking is not decided; they lose replication points under Sec. 10.
+
+## 12.67 Status at the end of this part
+- **Done and pushed (through `509125d`):** setup, QC, GEO-only models, A7 and A7b, A7 primary (154 vs 50; 6,206 FDR genes; inflation 6.24), six sensitivities, RIN check, A8 sva, A9, A10 (C9 label rule), node look (JAK1 and TBK1 Robust, small effects; CGAS, STING1, JAK2, IRF3 not significant), A11, fgsea (registered sets Model-dependent or not significant).
+- **Waiting:** A10 C9 model fits; cervical secondary and A2.3a; optional composition-adjusted variant; GSE67196; RiMod-FTD (FTD arm); cross-arm labels; network, genetic, scoring, docking and MD layers; housekeeping (versions of sva, fgsea and msigdbr in `docs/session_info.txt`; literature notes; CV bullet).
+
+## 12.68 Working notes added in this part
+- Settings and set names: in this msigdbr, use `collection =` and `subcollection =`; `print(msigdbr_collections(), n = 50)` fails, use `as.data.frame()`.
+- fgsea warnings about ties are suppressed in the script; fgseaMultilevel is stochastic, so identical sets can give slightly different NES in different calls (same seed, different pathway lists).
+- The CV research-summary bullet can say "preliminary" results (TBK1 and JAK1 modestly higher in ALS; CGAS and STING1 not changed); do not add the pathway result there yet.
+- Gene-level result files for the six nodes are on disk and committed; the C9, cervical and FTD node results have NOT been viewed.
+
+## 12.69 Revised next steps (in order; supersedes 12.58)
+1. **Append this addendum to the handoff file, commit and push** (`git add docs/PROJECT_HANDOFF_ALS-FTD_immune-axis.md` only).
+2. **Script 16: the A10 C9 fits.** Rebuild the carrier label from ST1 with the A10 rule and guard the counts (27 ALS carriers, 127 ALS non-carriers, 50 controls); for each comparison (C9 vs controls, 27 vs 50; C9 vs non-C9orf72 ALS, 27 vs 127) fit the A7 design with carrier status plus four sensitivities (without site; without flag_prereg outliers; NovaSeq-only; A7 design plus SV1 from `results/nygc_frontal_A8_svs.csv`); count filter n = 27; full-rank guard (stop and amend if it fails); report how many carriers RIN >= 5.5 would leave. Commit the script before running it.
+3. **Script 17: node and pathway look for the C9 comparisons** under A9 (reference = that comparison's primary; sensitivities = the four models above; A9.6 as written in A10) and A11 settings, committed before running. Possible only if A11 and A9 are applied unchanged; any change needs a dated amendment first.
+4. Amendments before any node is viewed in the respective data: cervical secondary (155 vs 41) and A2.3a (201 vs 56); GSE67196 (C9 ALS vs sporadic ALS vs healthy; pathway-level primary); RiMod-FTD (FTD arm; donor-overlap check between NYGC and RiMod-FTD; covariates age, sex, RIN, pH).
+5. Optional: an amendment and fit for a composition-adjusted variant of the A7 design (A7.7, A9.8), to help interpret the glia-expressed nodes and the pathway direction; decide after the C9 results.
+6. Cross-arm labels (spectrum-level supported or arm-specific, A1.4) once the FTD arm exists; then the network layer, genetic layer (MR and colocalization), gates and scoring, docking, MD (cloud GPU plan for Boltz-2).
+7. Housekeeping: record sva 3.60.0, fgsea 1.38.0 and msigdbr 26.1.1 in `docs/session_info.txt`; update `literature/prior_art_notes.md` with the flagship preprint and O'Neill 2025; keep recording each major step as an addendum.
+
+## 12.70 Draft methods and limitations wording added in this part (edit before use)
+- *Pathway analysis.* Genes were ranked by the DESeq2 Wald statistic and tested with fgsea (v1.38.0, multilevel method, set sizes 15 to 500) on five Hallmark sets and the legacy KEGG cytosolic DNA-sensing set (MSigDB 2026.1; the legacy KEGG set does not contain CGAS), with Benjamini-Hochberg correction across the six sets. Specificity was assessed against 1,000 random gene sets of matched size. A Reactome set containing CGAS and STING1 was added as a prespecified-rule exploratory set. Sets were labelled robust only if significant in the primary model and in the same direction in nine sensitivity models.
+- *Result and limitation to state.* In ALS frontal cortex the interferon, TNFA and IL6-JAK-STAT3 Hallmark sets were lower than in controls in the primary model, but their direction was not stable across sensitivity analyses (positive in the NovaSeq-only and RIN >= 5.5 subsets), and 30 of 50 Hallmark sets were altered, indicating broad tissue changes; DNA-sensing sets were not changed. These are bulk-tissue, ALS-spectrum results and are not C9orf72-specific. Gene-set permutation does not account for correlation among genes in a set.
+
+## 12.71 Suggested first message for the next chat
+"Continue my ALS-FTD immune-axis project from the attached handoff file and its addenda (sections 12.1 to 12.71). I run R and RStudio locally on Windows, use Git Bash, and I'm new to R and transcriptomics. First help me verify git (`git log --oneline -6` should include 509125d, the fgsea results, and `git status` should be clean except for the untracked A7 analysis table). Then guide me one step at a time: the A10 C9 model fits (script 16, committed before it is run), then the node and pathway look for the C9 comparisons under A9 and A11 unchanged. Do not change any rule fixed in A7 to A11. Keep recording each major step as an addendum block I can paste into the handoff file."
