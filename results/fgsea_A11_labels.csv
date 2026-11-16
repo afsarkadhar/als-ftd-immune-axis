@@ -1,0 +1,7 @@
+"set","primary_NES","primary_pval","primary_FDR_BH6","label","detail"
+"IFN_alpha",-2.05,8.27e-06,2.48e-05,"Model-dependent","direction differs in: s7e_rin55"
+"IFN_gamma",-1.82,4.72e-06,2.48e-05,"Model-dependent","direction differs in: s7d_novaseq, s7e_rin55"
+"Inflammatory",-1.2,0.0982,0.118,"Not significant",""
+"TNFa_NFKB",-1.67,7.61e-05,0.000152,"Model-dependent","direction differs in: s7d_novaseq"
+"IL6_JAK_STAT3",-1.64,0.00542,0.00813,"Model-dependent","direction differs in: s7d_novaseq, s7e_rin55"
+"KEGG_legacy_DNAsens",-0.75,0.879,0.879,"Not significant",""

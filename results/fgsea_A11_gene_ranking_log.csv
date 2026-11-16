@@ -1,0 +1,11 @@
+"model","tested_ids","no_stat","unmapped","duplicate_symbols_dropped","ranked_genes"
+"A7_primary",19902,0,6287,4,13611
+"s7a_consortium",19902,0,6287,4,13611
+"s7b_no_site",19902,0,6287,4,13611
+"s7d_outliers",19888,0,6283,4,13601
+"s7d_novaseq",20200,0,6514,4,13682
+"s7e_rin55",19896,0,6259,4,13633
+"s7f_no_discord",19888,0,6276,4,13608
+"A8_sva",19902,0,6287,4,13611
+"A5_geo_only",19748,0,6173,4,13571
+"A6_composition",19748,0,6173,4,13571
