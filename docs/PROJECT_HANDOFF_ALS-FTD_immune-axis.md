@@ -827,3 +827,52 @@ GEO-only A5 primary (154 vs 56; inflation 20.3); GEO-only A6 composition (154 vs
 
 ## 12.78 Suggested first message for the next chat
 "Continue my ALS-FTD immune-axis project from the attached handoff file and its addenda (sections 12.1 to 12.78). I run R and RStudio locally on Windows, use Git Bash, and I'm new to R and transcriptomics. First help me verify git (`git log --oneline -6` should include the A10 results commit and the addendum 8 commit, and `git status` should be clean except for the untracked A7 analysis table and A10 carrier labels). Then explain the 10 summary rows in 12.75 to me in plain language, one step at a time, and write the interpretation into addendum 9 before any node is viewed. Then script 17 (node and pathway look for the C9 comparisons), committed before it is run. Do not change any rule fixed in A7 to A11. Keep recording each major step as an addendum block I can paste into the handoff file."
+# ADDENDUM 9 (append after Section 12.78 of the handoff file; 2026-11-16, later part of session 2)
+# Covers: git verification, plain-language interpretation of the A10 C9 summary numbers (12.75) written before any node or pathway of a C9 comparison was viewed, the PI-style discussion of the paper's framing, Amendment A12, and the revised next steps. **No rule in A7 to A12 changes. This supersedes the "Revised next steps" list in Section 12.77.**
+
+## 12.79 Git record (all pushed; verified)
+- At the start of this part: `27b7158` (addendum 8) on top of `ff4611c` (A10 results) and `d798962` (script 16, committed before it was run); branch up to date with origin; untracked only `results/nygc_frontal_A7_analysis_table.csv` and `results/nygc_frontal_A10_carrier_labels.csv`.
+- `15a85f7` Amendment A12 (9 insertions, no deletions), committed and pushed before script 17 existed on disk. `git status` afterwards showed only the same two untracked files.
+
+## 12.80 Interpretation of the A10 summary numbers (summary counts only; no gene, node or pathway of any A10 run viewed)
+1. Which comparison tests what. C9 carriers vs controls contains the general ALS-vs-control effect and cannot show C9-specificity. C9 carriers vs non-C9orf72 ALS is the C9-specific test (H1, Sec. 1). A node or set that is significant in C9 vs controls only is not reported as C9-specific (fixed in A12.4).
+2. C9 vs non-C9orf72 ALS (27 vs 127): 0 or 1 FDR genes in all five runs; inflation 0.83 to 0.94. No gene-level C9-specific difference is detectable in frontal cortex at this sample size, consistent with the consortium's published 1 DEG for carriers vs non-carriers. This is a null result at limited power, not proof of no difference; non-carriers without an RP-PCR result may include missed carriers (A10.3).
+3. C9 vs controls (27 vs 50): 47 FDR genes in the primary (inflation 2.67). Removing site gives 8,390 genes (inflation 8.81) because carriers and controls come mostly from different sites (UCL has 24 controls but 1 carrier); this again supports keeping site in the model. Removing outliers (20 genes) or adding SV1 (31 genes) changes the count several-fold, so the primary count is fragile and is not a headline result.
+4. The NovaSeq-only run of C9 vs controls (18 vs 32) gave 198 genes (154 up, 44 down), more than the primary despite fewer samples. This is unexplained and is not interpreted. An optional metadata-only check (site by group and carrier status in that subset, no model) could be done; it is not required by any amendment.
+5. The cervical cord is where the consortium reported a C9 signal (1,236 DEGs), so it carries more weight for the anchor hypothesis than frontal cortex; its models need their own amendment before any node is viewed there (A10.7).
+
+## 12.81 PI-style discussion of framing (recorded; no rule changed)
+- Discussion held after the A10 numbers. Recommendation recorded: treat the pre-registered transcriptomic study as the core of the paper and decide on the downstream layers (docking, Boltz-2, MD) only after every pre-registered arm (ALS frontal, C9, cervical, GSE67196, FTD) has reported. Reason: no primary-screen node currently passes the gates (CGAS and STING1 not changed; JAK1 borderline with a small effect; TBK1 outside the primary screen by G3), and the arms that test the C9 anchor are not yet reported.
+- Publishability: a well-run pre-registered study with null or mixed results is publishable, but the expected venue is mid-tier or methods-oriented; novelty of the integration is not yet confirmed (literature notes still to be updated with the NYGC flagship preprint and O'Neill 2025).
+- A draft item stating a stopping rule for later structure-based work (label it exploratory if no node passes G1) was considered and deliberately NOT adopted for now (decision by the user, 2026-11-16). It can be revisited by a dated amendment after the arms have reported. Nothing in the pre-registration commits to docking regardless of the transcriptomic result.
+- Adding analyses to the frontal ALS arm (for example the composition-adjusted variant) is optional and should be done only if needed to interpret a result.
+
+## 12.82 Amendment A12 (commit `15a85f7`)
+- Settings for the node and pathway look in the two A10 comparisons, written before any C9 node or pathway was viewed. Scope: C9 vs control (27 vs 50) and C9 vs non-C9orf72 ALS (27 vs 127); each comparison's primary is the reference and A10.5 (a) to (d) are its sensitivity set; positive = higher in carriers.
+- Nodes: six-gene BH family within each model, genome-wide FDR alongside, A9 labels unchanged. Pathways: A11 settings unchanged (Wald-statistic ranking, six registered sets as one family, fgseaMultilevel, minSize 15, maxSize 500, set.seed(1)); specificity control in the two C9 primaries only; exploratory Reactome set in all ten models without an A9 label; the 50-Hallmark run not repeated.
+- Interpretation fixed in advance (A12.4): only C9 vs non-C9orf72 ALS can support a C9-specific claim; a null there is reported as a null. A12.5: the number of comparisons run in the project is reported, no correction across comparisons, single-comparison results are labelled as such.
+- The header discloses that the ALS-vs-control node and pathway results (scripts 14 and 15) had been viewed and that only summary counts of the A10 runs had been seen.
+
+## 12.83 Script 17 (drafted; NOT yet saved or run)
+- `scripts/17_nodes_pathways_A12_C9.R`: reuses the loaders, mapping checks, label logic and fgsea settings of scripts 14, 15 and 16; first guard stops if A12 is not in `PREREG.md`; prints only the six nodes and the pathway tables. Outputs: `results/nodes_A12_C9_all_models_long.csv`, `results/nodes_A12_C9_labels.csv`, `results/fgsea_A12_C9_registered_long.csv`, `..._exploratory_reactome_all_models.csv`, `..._gene_ranking_log.csv`, `..._labels.csv`, `..._specificity_primary.csv`.
+- To be committed and pushed BEFORE it is run (order rule, 12.1).
+
+## 12.84 Working notes added in this part
+- The three previous scripts (14, 15, 16) were shared again in the chat so that script 17 follows them exactly.
+- Do not open any `results/nygc_frontal_A10_*_all_genes.csv` before script 17 is committed and run.
+
+## 12.85 Revised next steps (in order; supersedes 12.77)
+1. Append this addendum to the handoff file, commit and push (`git add docs/PROJECT_HANDOFF_ALS-FTD_immune-axis.md` only).
+2. Save `scripts/17_nodes_pathways_A12_C9.R` (final reviewed text), commit and push it, then run it. Paste the printed node tables, pathway tables and labels back; interpret them in addendum 10 using the A12.4 reading.
+3. Amendments before any node is viewed in the respective data: cervical secondary (155 vs 41) and A2.3a (201 vs 56) with the A10 label rule; GSE67196; RiMod-FTD (FTD arm, donor-overlap check with NYGC, covariates age, sex, RIN, pH).
+4. Optional: composition-adjusted variant of the A7 design (needs an amendment first); optional metadata-only NovaSeq site check (12.80.4).
+5. Cross-arm labels (A1.4) once the FTD arm exists; then decide on the network layer, genetic layer, gates and scoring, docking and MD (cloud GPU plan for Boltz-2).
+6. Housekeeping: record sva 3.60.0, fgsea 1.38.0 and msigdbr 26.1.1 in `docs/session_info.txt`; update `literature/prior_art_notes.md` with the flagship preprint and O'Neill 2025.
+
+## 12.86 Draft methods and limitations wording added in this part (edit before use)
+- *C9orf72 comparisons.* Carriers (ExpansionHunter repeat size >= 30 or positive repeat-primed PCR; 27 in frontal cortex) were compared with controls (n = 50) and with non-C9orf72 ALS (n = 127) using the primary design with carrier status, plus four pre-specified sensitivity analyses per comparison. Only the carrier vs non-C9orf72 ALS comparison was treated as informative about C9-specificity.
+- *Result and limitation to state.* In frontal cortex, carriers vs non-C9orf72 ALS gave 0 or 1 genes at FDR < 0.05 in every model (inflation 0.83 to 0.94), consistent with the consortium's report; power is limited (27 carriers), and non-carriers without an RP-PCR result may include some missed carriers. The carrier vs control comparison depended strongly on the site term (47 vs 8,390 genes without it) because carriers and controls came mostly from different sites.
+
+## 12.87 Suggested first message for the next chat
+"Continue my ALS-FTD immune-axis project from the attached handoff file and its addenda (sections 12.1 to 12.87). I run R and RStudio locally on Windows, use Git Bash, and I'm new to R and transcriptomics. First help me verify git (`git log --oneline -6` should include the addendum 9 commit, the A12 commit 15a85f7 and, if done, the script 17 commit; `git status` should be clean except for the untracked A7 analysis table and A10 carrier labels). Then guide me one step at a time: script 17 (node and pathway look for the C9 comparisons) committed before it is run, then the cervical secondary amendment. Do not change any rule fixed in A7 to A12. Keep recording each major step as an addendum block I can paste into the handoff file."
+
